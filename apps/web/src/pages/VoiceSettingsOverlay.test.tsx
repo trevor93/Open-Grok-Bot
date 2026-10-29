@@ -292,6 +292,65 @@ it("connects a self-hosted speech server by URL without a key", async () => {
   }
 });
 
+it("connects macOS voices without a key", async () => {
+  vi.stubGlobal("IS_REACT_ACT_ENVIRONMENT", true);
+  voice.connect.mockReset();
+  voice.catalog.mockResolvedValue([
+    { id: "macos", name: "macOS", description: "", transcribe: false },
+  ]);
+  voice.credentials.mockResolvedValue([]);
+  voice.status.mockResolvedValue({
+    configured: false,
+    ready: false,
+    transcribe: false,
+    provider: null,
+    voiceId: "",
+  });
+  voice.connect.mockResolvedValue({
+    id: "cred-mac",
+    provider: "macos",
+    hasKey: true,
+    isDefault: true,
+    voiceId: "Zoe (Premium)",
+    speechModel: "",
+    transcribe: false,
+  });
+
+  const container = document.createElement("div");
+  document.body.append(container);
+  const root = createRoot(container);
+  try {
+    await act(async () => {
+      root.render(
+        withQueries(<VoiceSettingsOverlay embedded scope="account" onClose={() => undefined} />),
+      );
+    });
+    await act(async () => {
+      await Promise.resolve();
+    });
+
+    expect(container.textContent).not.toContain("API key");
+    const connect = [...container.querySelectorAll("button")].find(
+      (entry) => entry.textContent === "Connect",
+    );
+    expect(connect?.disabled).toBe(false);
+    await act(async () => {
+      connect?.click();
+    });
+
+    expect(voice.connect).toHaveBeenCalledWith({
+      scope: "account",
+      provider: "macos",
+      apiKey: "",
+      voiceId: undefined,
+    });
+  } finally {
+    await act(async () => root.unmount());
+    container.remove();
+    vi.unstubAllGlobals();
+  }
+});
+
 it.each([
   { field: "Server URL", value: "http://100.64.0.11:8880/v1" },
   { field: "Speech model", value: "new-model" },

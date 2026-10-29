@@ -83,6 +83,7 @@ import {
   GroupDetailSchema,
   GroupSchema,
   IntegrationCatalogResultSchema,
+  MACOS_VOICE_PROVIDER_ID,
   McpServerConfigInput,
   McpServerSchema,
   MemoryDocumentSchema,
@@ -1268,7 +1269,7 @@ export const appContract = {
         z
           .object({
             provider: z.string(),
-            /** Optional only for a self-hosted server, which may run without a key. */
+            /** Optional for a self-hosted server; macOS voices have no key. */
             apiKey: z.string().max(4096).default(""),
             voiceId: z.string().max(120).optional(),
             speechModel: z.string().max(64).optional(),
@@ -1284,7 +1285,7 @@ export const appContract = {
               if (!input.baseUrl?.trim()) {
                 ctx.addIssue({ code: "custom", path: ["baseUrl"], message: "Enter a server URL." });
               }
-            } else if (input.apiKey.length < 8) {
+            } else if (input.provider !== MACOS_VOICE_PROVIDER_ID && input.apiKey.length < 8) {
               ctx.addIssue({ code: "custom", path: ["apiKey"], message: "Enter an API key." });
             }
           }),

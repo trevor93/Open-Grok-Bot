@@ -88,6 +88,7 @@ export * from "./keenable-web.js";
 export * from "./key-provider-factory.js";
 export * from "./keyless-http-web.js";
 export * from "./kubernetes-sandbox.js";
+export * from "./macos-voice.js";
 export * from "./mcp-connector.js";
 export * from "./mcp-emulator.js";
 export * from "./mcp-oauth.js";

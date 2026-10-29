@@ -8,6 +8,7 @@ import { captureApiRequestContext, currentApiBase, rpc } from "./api";
 import {
   createSpeechOwner,
   getVoicePlaybackState,
+  isWavAudio,
   pauseVoicePlayback,
   playMpeg,
   resumeVoicePlayback,
@@ -1112,5 +1113,12 @@ describe("on-device speech", () => {
 
     calls[1]?.options?.onDone?.();
     await expect(second).resolves.toBe(true);
+  });
+});
+
+describe("isWavAudio", () => {
+  it("tells a macOS WAV clip from MP3", () => {
+    expect(isWavAudio(new TextEncoder().encode("RIFF...."))).toBe(true);
+    expect(isWavAudio(Uint8Array.from([0xff, 0xfb, 0x90, 0x00]))).toBe(false);
   });
 });

@@ -19,6 +19,12 @@ import {
 } from "./voice-factory.js";
 import { MAX_SYNTHESIZED_AUDIO_BYTES, MAX_VOICE_JSON_BYTES } from "./voice-http.js";
 
+const macOs = vi.hoisted(() => ({ available: false }));
+vi.mock("./macos-voice.js", async (importOriginal) => ({
+  ...(await importOriginal<typeof import("./macos-voice.js")>()),
+  macOsVoiceAvailable: () => macOs.available,
+}));
+
 const ctx = {
   operationId: "voice",
   traceId: "voice",
@@ -42,6 +48,7 @@ describe("createVoiceProvider", () => {
     process.env.AGENT_RUNTIME = "pi";
     vi.stubEnv("RAKAZO_OPENAI_COMPAT_ALLOW_PUBLIC", "0");
     expect(VOICE_CATALOG.map((entry) => entry.id)).toEqual([
+      "macos",
       "elevenlabs",
       "openai",
       "cartesia",
@@ -62,6 +69,7 @@ describe("createVoiceProvider", () => {
     expect(isVoiceProviderId("elevenlabs")).toBe(true);
     expect(isVoiceProviderId("scripted")).toBe(false);
     expect(isVoiceProviderId("piper")).toBe(false);
+    expect(isVoiceProviderId("macos")).toBe(false);
     expect(() => createVoiceProvider("piper")).toThrow(/unknown voice provider/i);
     expect(() => createVoiceProvider("scripted")).toThrow(/unknown voice provider/i);
   });
@@ -76,6 +84,14 @@ describe("createVoiceProvider", () => {
     ).toBe(true);
     vi.stubEnv("RAKAZO_OPENAI_COMPAT_ALLOW_PUBLIC", "");
     expect(listVoiceCatalog().some((entry) => entry.id === "openai-compatible")).toBe(true);
+  });
+
+  it("lists macOS voices only where the API can run say", () => {
+    macOs.available = true;
+    expect(listVoiceCatalog()[0]?.id).toBe("macos");
+    expect(isVoiceProviderId("macos")).toBe(true);
+    expect(createVoiceProvider("macos").describe().capabilities.transcribe).toBe(false);
+    macOs.available = false;
   });
 
   it("adds the scripted fixture only when the agent runtime is scripted", () => {

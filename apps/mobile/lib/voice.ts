@@ -460,7 +460,12 @@ async function renderUtterance(
   }
 }
 
-// Hosted (MP3) playback shares one HostedSession across a speakText call's utterances, so
+/** macOS voices return WAV; every other provider returns MP3. */
+export function isWavAudio(bytes: Uint8Array): boolean {
+  return bytes[0] === 0x52 && bytes[1] === 0x49 && bytes[2] === 0x46 && bytes[3] === 0x46;
+}
+
+// Hosted playback shares one HostedSession across a speakText call's utterances, so
 // Pause/Resume/Stop keep working across the gap between them.
 
 let hostedSpeechSession = 0;
@@ -526,7 +531,9 @@ async function playWithHtmlAudio(
   session?: HostedSession,
 ): Promise<void> {
   if (session?.isStopped) return;
-  const blob = new Blob([new Uint8Array(bytes)], { type: "audio/mpeg" });
+  const blob = new Blob([new Uint8Array(bytes)], {
+    type: isWavAudio(bytes) ? "audio/wav" : "audio/mpeg",
+  });
   const url = URL.createObjectURL(blob);
   try {
     const audio = new AudioCtor(url);
@@ -578,7 +585,10 @@ async function playWithNativeAudio(bytes: Uint8Array, session?: HostedSession): 
     interruptionMode: "mixWithOthers",
     shouldPlayInBackground: playsInBackground,
   });
-  const file = new File(Paths.cache, `rakazo-voice-${Date.now()}.mp3`);
+  const file = new File(
+    Paths.cache,
+    `rakazo-voice-${Date.now()}.${isWavAudio(bytes) ? "wav" : "mp3"}`,
+  );
   file.create({ overwrite: true });
   file.write(bytesToBase64(bytes), { encoding: "base64" });
   const player = createAudioPlayer({ uri: file.uri });

@@ -6,6 +6,7 @@ import {
   isFishSpeechModelId,
   isVoiceProviderId,
   listVoiceCatalog,
+  MACOS_VOICE_PROVIDER_ID,
   MAX_SPEAK_CHARS,
   MAX_TRANSCRIBE_BYTES,
   NoVoiceConfigured,
@@ -156,7 +157,8 @@ export function voiceChoicesChanged(previousPlaintext: string | undefined, plain
 
 /**
  * The secret to store. Hosted providers keep the bare key; a self-hosted server stores
- * its base URL, optional key, and model ids, validated like model connections.
+ * its base URL, optional key, and model ids, validated like model connections. macOS
+ * voices have no key.
  */
 export function voiceCredentialPlaintext(input: {
   provider: string;
@@ -168,6 +170,7 @@ export function voiceCredentialPlaintext(input: {
   previousPlaintext?: string;
   allowPrivateEndpoint?: boolean;
 }): string {
+  if (input.provider === MACOS_VOICE_PROVIDER_ID) return "";
   if (input.provider !== OPENAI_COMPATIBLE_VOICE_PROVIDER_ID) {
     if (input.plaintext.trim().length < 8) {
       throw new ORPCError("BAD_REQUEST", { message: "Enter an API key." });

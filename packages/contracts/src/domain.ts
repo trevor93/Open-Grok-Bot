@@ -1416,6 +1416,8 @@ export function modelChoiceListSchema<T extends z.ZodType<ModelBackupChoice>>(ch
 export const ModelBackupListSchema = modelChoiceListSchema(ModelBackupChoiceSchema);
 
 export const OPENAI_COMPATIBLE_PROVIDER_ID = "openai-compatible";
+/** Voices installed on the Mac running the API, rendered by `say`. No key. */
+export const MACOS_VOICE_PROVIDER_ID = "macos";
 
 export const MAX_ENABLED_MODEL_IDS = 500;
 
