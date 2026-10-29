@@ -2,6 +2,7 @@ const { contextBridge, ipcRenderer } = require("electron");
 
 contextBridge.exposeInMainWorld("rakazoDesktop", {
   platform: process.platform,
+  nativeWindowFrame: process.platform === "win32",
   badge: {
     set: (count) => ipcRenderer.invoke("desktop.badge.set", count),
   },

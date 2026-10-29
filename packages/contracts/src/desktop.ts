@@ -68,6 +68,8 @@ export interface RakazoDesktop {
     rpIds: () => Promise<string[]>;
   };
   platform: string;
+  /** Absent on older frameless releases, which still need in-app controls. */
+  nativeWindowFrame?: boolean;
   window: {
     close: () => Promise<void>;
     minimize: () => Promise<void>;
